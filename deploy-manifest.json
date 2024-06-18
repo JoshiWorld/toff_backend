@@ -7,7 +7,11 @@
       200,
       1920
     ],
-    "domains": [],
+    "domains": [
+      "https://toff-musik.de",
+      "https://api.toff-musik.de",
+      "https://main.d3joyuo6hj1216.amplifyapp.com"
+    ],
     "remotePatterns": [],
     "formats": [],
     "minimumCacheTTL": 60,
