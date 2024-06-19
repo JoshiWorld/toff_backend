@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Live {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  ticketLink   String?
+  imageSource  String?
+  archived     Boolean  @default(false)
+  isVideo      Boolean
+  mediaSource  String?
+}
+
+model Master {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  role     String   @unique
+  password String
+}
+
+model Stats {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  value   Int?
+  goal    Int?
+  color   String
+}
+
+model Email {
+  email_id  String @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  password  String
+}
+
+// model ActiveEmail {
+//   active_email_id  String @id @default(auto()) @map("_id") @db.ObjectId
+//   email_id         Int
+//   email            Email    @relation(fields: [email_id], references: [email_id])
+//   @@unique([email_id])
+// }
+
+model Deal {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  price       Int
+  link        String
+}
+
+model DealSong {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  song_id  String
+}

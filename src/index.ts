@@ -1,53 +1,71 @@
-// src/index.ts
-import express from "express";
+import createError from "http-errors";
+import express, { Request, Response, NextFunction } from "express";
+import path from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const app: express.Application = express();
-const port = 3000;
+import liveRouter from "./routes/live";
+import masterRouter from "./routes/master";
+import statsRouter from "./routes/stats";
+// import contactRouter from "./routes/contact";
+// import dealsRouter from "./routes/deals";
 
-app.use(express.text());
+dotenv.config();
 
-app.listen(port, () => {
-  console.log(`server is listening on ${port}`);
+const app = express();
+
+// Increase the request size limit for JSON data (e.g., 10MB)
+app.use(express.json({ limit: "10mb" }));
+
+// Increase the request size limit for URL-encoded data (e.g., 10MB)
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
+
+// View engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "pug");
+
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
+
+const corsOptions: cors.CorsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://toff.brokoly.de",
+    "https://toff-musik.de",
+  ],
+};
+
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
+
+app.use("/api/live", liveRouter);
+app.use("/api/master", masterRouter);
+app.use("/api/stats", statsRouter);
+// app.use("/api/contact", contactRouter);
+// app.use("/api/deals", dealsRouter);
+
+// Catch 404 and forward to error handler
+app.use(function (req: Request, res: Response, next: NextFunction) {
+  next(createError(404));
 });
 
-// Homepage
-app.get("/", (req: express.Request, res: express.Response) => {
-  res.status(200).send("Hello World!");
+// Error handler
+app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
+  // Set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+
+  // Render the error page
+  res.status(err.status || 500);
+  res.render("error"); // Assuming 'error' is a valid pug template
 });
 
-// GET
-app.get("/get", (req: express.Request, res: express.Response) => {
-  res
-    .status(200)
-    .header("x-get-header", "get-header-value")
-    .send("get-response-from-compute");
-});
-
-//POST
-app.post("/post", (req: express.Request, res: express.Response) => {
-  res
-    .status(200)
-    .header("x-post-header", "post-header-value")
-    .send(req.body.toString());
-});
-
-//PUT
-app.put("/put", (req: express.Request, res: express.Response) => {
-  res
-    .status(200)
-    .header("x-put-header", "put-header-value")
-    .send(req.body.toString());
-});
-
-//PATCH
-app.patch("/patch", (req: express.Request, res: express.Response) => {
-  res
-    .status(200)
-    .header("x-patch-header", "patch-header-value")
-    .send(req.body.toString());
-});
-
-// Delete
-app.delete("/delete", (req: express.Request, res: express.Response) => {
-  res.status(200).header("x-delete-header", "delete-header-value").send();
-});
+export default app;
