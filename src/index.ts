@@ -34,28 +34,28 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-const corsOptions: cors.CorsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://toff.brokoly.de",
-    "https://toff-musik.de",
-  ],
-};
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://toff-musik.de");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
-app.options("*", cors(corsOptions));
-app.use(cors(corsOptions));
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next(createError(404));
+});
 
 app.use("/api/live", liveRouter);
 app.use("/api/master", masterRouter);
 app.use("/api/stats", statsRouter);
 // app.use("/api/contact", contactRouter);
 // app.use("/api/deals", dealsRouter);
-
-// Catch 404 and forward to error handler
-app.use(function (req: Request, res: Response, next: NextFunction) {
-  next(createError(404));
-});
 
 // Error handler
 app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
